@@ -2,7 +2,7 @@
 CREATE TABLE chat (
     id serial primary key,
     name text not null,
-    from text not null
+    from_user text not null
 );
 
 

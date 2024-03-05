@@ -21,11 +21,6 @@ const (
 	grpcPort = 50051
 )
 
-type Chat struct {
-	ID   int64  `db:"id"`
-	Name string `db:"name"`
-}
-
 type server struct {
 	desc.UnimplementedChatV1Server
 	db *pgxpool.Pool

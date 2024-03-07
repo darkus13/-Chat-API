@@ -17,8 +17,12 @@ import (
 )
 
 const (
-	dbDSN    = "host=localhost port=5433 dbname=chat user=darkus password=andrej sslmode=disable"
-	grpcPort = 50051
+	dbDSN     = "host=localhost port=5433 dbname=chat user=darkus password=andrej sslmode=disable"
+	grpcPort  = 50051
+	chatId    = "id"
+	chatName  = "name"
+	chatText  = "text"
+	tableChat = "chat"
 )
 
 type server struct {
@@ -28,24 +32,24 @@ type server struct {
 }
 
 func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
-	Name := req.GetUsername()
+	name := req.GetUsername()
 
-	InsertBuilder := s.qb.Insert("chat").
+	InsertBuilder := s.qb.Insert(tableChat).
 		PlaceholderFormat(sq.Dollar).
-		Columns("name").
-		Values(Name).
+		Columns(chatName).
+		Values(name).
 		Suffix("RETURNING id")
 
 	query, args, err := InsertBuilder.ToSql()
 	if err != nil {
-		log.Fatalf("failed to build query: %v", err)
+		_ = fmt.Errorf("failed to build query: %v", err)
 	}
 
 	var chatID int64
 
 	err = s.db.QueryRow(ctx, query, args...).Scan(&chatID)
 	if err != nil {
-		log.Fatalf("failed to insert user: %v", err)
+		_ = fmt.Errorf("failed to insert user: %v", err)
 	}
 
 	log.Printf("inserted user with ID: %d", chatID)
@@ -59,17 +63,17 @@ func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.Cre
 func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
 	ID := req.GetId()
 
-	DeleteBuilder := s.qb.Delete("chat").
-		Where(sq.Eq{"id": ID})
+	DeleteBuilder := s.qb.Delete(tableChat).
+		Where(sq.Eq{chatId: ID})
 
 	query, args, err := DeleteBuilder.ToSql()
 	if err != nil {
-		log.Fatalf("failed to build query: %v", err)
+		_ = fmt.Errorf("failed to build query: %v", err)
 	}
 
 	row, err := s.db.Exec(ctx, query, args...)
 	if err != nil {
-		log.Fatalf("failed to delete user: %v", err)
+		_ = fmt.Errorf("failed to delete user: %v", err)
 	}
 
 	log.Printf("delete %d rows", row.RowsAffected())
@@ -79,21 +83,21 @@ func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.
 
 func (s *server) SendMessage(ctx context.Context, req *desc.SendMessageRequest) (*emptypb.Empty, error) {
 
-	Text := req.GetText()
+	text := req.GetText()
 
-	SelectBuilder := s.qb.Insert("chat").
-		Columns("text").
-		Values(Text).
+	SelectBuilder := s.qb.Insert(chatText).
+		Columns(chatText).
+		Values(text).
 		Prefix("RETURNING text")
 
 	query, args, err := SelectBuilder.ToSql()
 	if err != nil {
-		log.Fatalf("failed to build query: %v", err)
+		_ = fmt.Errorf("failed to build query: %v", err)
 	}
 
 	_, err = s.db.Exec(ctx, query, args...)
 	if err != nil {
-		log.Fatalf("failed to send massage db : %v", err)
+		_ = fmt.Errorf("failed to send massage db : %v", err)
 	}
 
 	return &emptypb.Empty{}, nil
@@ -105,22 +109,22 @@ func main() {
 
 	pgxConfig, err := pgxpool.ParseConfig(dbDSN)
 	if err != nil {
-		log.Fatalf("failed to patde config: %v", err)
+		_ = fmt.Errorf("failed to patde config: %v", err)
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, pgxConfig)
 	if err != nil {
-		log.Fatalf("failed to connect to postgres: %v", err)
+		_ = fmt.Errorf("failed to connect to postgres: %v", err)
 	}
 
 	err = pool.Ping(ctx)
 	if err != nil {
-		log.Fatalf("ping to postgres failed: %v", err)
+		_ = fmt.Errorf("ping to postgres failed: %v", err)
 	}
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		_ = fmt.Errorf("failed to listen: %v", err)
 	}
 
 	s := grpc.NewServer()

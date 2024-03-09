@@ -42,14 +42,14 @@ func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.Cre
 
 	query, args, err := InsertBuilder.ToSql()
 	if err != nil {
-		_ = fmt.Errorf("failed to build query: %v", err)
+		log.Printf("failed to build query: %v", err)
 	}
 
 	var chatID int64
 
 	err = s.db.QueryRow(ctx, query, args...).Scan(&chatID)
 	if err != nil {
-		_ = fmt.Errorf("failed to insert user: %v", err)
+		log.Printf("failed to insert user: %v", err)
 	}
 
 	log.Printf("inserted user with ID: %d", chatID)
@@ -68,12 +68,12 @@ func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.
 
 	query, args, err := DeleteBuilder.ToSql()
 	if err != nil {
-		_ = fmt.Errorf("failed to build query: %v", err)
+		log.Printf("failed to build query: %v", err)
 	}
 
 	row, err := s.db.Exec(ctx, query, args...)
 	if err != nil {
-		_ = fmt.Errorf("failed to delete user: %v", err)
+		log.Printf("failed to delete user: %v", err)
 	}
 
 	log.Printf("delete %d rows", row.RowsAffected())
@@ -92,12 +92,12 @@ func (s *server) SendMessage(ctx context.Context, req *desc.SendMessageRequest) 
 
 	query, args, err := SelectBuilder.ToSql()
 	if err != nil {
-		_ = fmt.Errorf("failed to build query: %v", err)
+		log.Printf("failed to build query: %v", err)
 	}
 
 	_, err = s.db.Exec(ctx, query, args...)
 	if err != nil {
-		_ = fmt.Errorf("failed to send massage db : %v", err)
+		log.Printf("failed to send massage db : %v", err)
 	}
 
 	return &emptypb.Empty{}, nil
@@ -109,22 +109,22 @@ func main() {
 
 	pgxConfig, err := pgxpool.ParseConfig(dbDSN)
 	if err != nil {
-		_ = fmt.Errorf("failed to patde config: %v", err)
+		log.Printf("failed to patde config: %v", err)
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, pgxConfig)
 	if err != nil {
-		_ = fmt.Errorf("failed to connect to postgres: %v", err)
+		log.Printf("failed to connect to postgres: %v", err)
 	}
 
 	err = pool.Ping(ctx)
 	if err != nil {
-		_ = fmt.Errorf("ping to postgres failed: %v", err)
+		log.Printf("ping to postgres failed: %v", err)
 	}
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
-		_ = fmt.Errorf("failed to listen: %v", err)
+		log.Printf("failed to listen: %v", err)
 	}
 
 	s := grpc.NewServer()

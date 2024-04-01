@@ -1,3 +1,22 @@
 package main
 
-func main()
+import (
+	"context"
+	"log"
+
+	"github.com/darkus13/-Chat_API/internal/app"
+)
+
+func main() {
+	ctx := context.Background()
+
+	a, err := app.NewApp(ctx)
+	if err != nil {
+		log.Fatalf("failed to init app: #{err.Error()}")
+	}
+
+	err = a.Run()
+	if err != nil {
+		log.Fatalf("failed to run app: #{err.Error()}")
+	}
+}

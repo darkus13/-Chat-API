@@ -14,11 +14,12 @@ func (r *repo) Create(ctx context.Context, info *model.Info) (int64, error) {
 	builderInsert := sq.Insert(chat).
 		Columns(chatID).
 		Values(info.ChatID).
-		Suffix("RETURNING id")
+		Suffix(returnID)
 
 	query, args, err := builderInsert.ToSql()
 	if err != nil {
 		log.Printf("failed to build query: %v", err)
+		return 0, err
 	}
 
 	q := db.Query{
@@ -36,6 +37,7 @@ func (r *repo) Create(ctx context.Context, info *model.Info) (int64, error) {
 	_, err = r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {
 		log.Fatalf("failed to added data in db: %v", err)
+		return 0, err
 	}
 
 	return chatiD, nil

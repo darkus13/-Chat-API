@@ -17,6 +17,7 @@ func (r *repo) Delete(ctx context.Context, info *model.Info) error {
 	query, args, err := builderDelete.ToSql()
 	if err != nil {
 		log.Printf("failed to build query: %v", err)
+		return err
 	}
 
 	q := db.Query{
@@ -27,6 +28,7 @@ func (r *repo) Delete(ctx context.Context, info *model.Info) error {
 	_, err = r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {
 		log.Printf("failed to query: %v", err)
+		return err
 	}
 
 	return nil

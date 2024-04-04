@@ -6,8 +6,7 @@ import (
 )
 
 const (
-	dbDSN    = "host=localhost port=5433 dbname=chat user=darkus password=andrej sslmode=disable"
-	grpcPort = 50051
+	returnID = "RETURNING id"
 	chat     = "chat"
 	chatID   = "chat_id"
 	userID   = "user_id"
